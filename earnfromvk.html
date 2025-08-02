@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinFlow Tasks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6b4acc;
+            --primary-light: #f5ebff;
+            --background-color: #f9f7fd;
+            --text-color: #333;
+            --gray-text: #888;
+            --card-bg: #fff;
+            --border-color: #ddd;
+            --accent-color: #ff9800;
+            --error-color: #e53935;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--background-color); color: var(--text-color); }
+        
+        .container { 
+            max-width: 420px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Terms & Policy Overlay */
+        #termsOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .terms-card {
+            background: white;
+            max-width: 420px;
+            margin: 20px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .terms-card h3 {
+            color: var(--error-color);
+            margin-bottom: 15px;
+        }
+        
+        .terms-card p {
+            font-size: 14px;
+            color: var(--text-color);
+            margin-bottom: 25px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .terms-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .terms-buttons button {
+            width: 50%;
+            padding: 12px;
+            font-weight: 600;
+        }
+
+        #declineBtn {
+            background: #aaa;
+        }
+
+
+        .header { 
+            text-align: center; 
+            font-weight: 700; 
+            color: var(--primary-color); 
+            margin-bottom: 8px; 
+            animation: fadeInDown 0.8s ease-in-out; 
+        }
+
+        .subheader { 
+            text-align: center; 
+            font-weight: 400; 
+            color: var(--gray-text); 
+            margin-bottom: 25px; 
+            font-size: 0.95em; 
+            animation: fadeIn 1s ease-in-out 0.5s forwards;
+            opacity: 0;
+        }
+        
+        input, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            transition: all 0.2s ease-in-out;
+        }
+        
+        input { background: var(--primary-light); color: var(--text-color); }
+        
+        button { 
+            background: var(--primary-color); 
+            color: white; 
+            cursor: pointer; 
+            font-weight: 600; 
+            letter-spacing: 0.5px;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button:disabled { background: var(--gray-text); cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .hidden { display: none !important; }
+
+        .title-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            font-size: 1.2em;
+        }
+
+        .tab-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            background: var(--card-bg); 
+            padding: 10px 0; 
+            border-top: 1px solid var(--border-color); 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .tab-bar button { 
+            background: none; 
+            border: none; 
+            color: var(--gray-text); 
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8em;
+            padding: 5px;
+        }
+        
+        .tab-bar button.active {
+            color: var(--primary-color);
+        }
+
+        .section { padding-bottom: 80px; }
+
+        .card {
+            background: var(--primary-light);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .card:hover { transform: translateY(-5px); }
+        .card-header { color: var(--primary-color); margin-bottom: 10px; font-weight: 600; }
+        .card-body p { color: var(--gray-text); font-size: 0.9em; }
+
+        .spin-wheel-card { text-align: center; }
+        .spin-icon { 
+            width: 80px; 
+            height: 80px; 
+            margin: auto; 
+            border-radius: 50%; 
+            background: linear-gradient(45deg, #e0ccff, #ffffff); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 32px; 
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .tap-box {
+            height: 100px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            border: 2px dashed var(--primary-color);
+            transition: all 0.2s ease-in-out;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .tap-box:active { 
+            transform: scale(0.98); 
+            background: var(--primary-color); 
+            color: white; 
+            border-color: white;
+        }
+
+        .info-block { 
+            margin-bottom: 15px; 
+            background: var(--primary-light);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .info-block span { 
+            display: block; 
+            font-size: 12px; 
+            color: var(--gray-text); 
+            margin-bottom: 2px;
+        }
+        
+        .info-block p {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Developer Options styles */
+        #devOptions {
+            max-width: 420px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        #userList {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+        #userList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+        #userList li:last-child {
+            border-bottom: none;
+        }
+        #userList .suspended {
+            color: var(--error-color);
+        }
+        
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .dev-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--gray-text);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="termsOverlay" class="hidden">
+    <div class="terms-card">
+        <h3>User Agreement & Policies</h3>
+        <p>
+            By continuing, you agree to our policies. Your account details and activity are processed for service operation. We take security seriously, but absolute data protection cannot be guaranteed. Furthermore, we reserve the right to suspend or terminate accounts without notice if any unusual activity is detected, at our sole discretion. We are not liable for any loss or misuse of data.
+        </p>
+        <div class="terms-buttons">
+            <button id="acceptBtn" onclick="acceptTerms()">Accept & Continue</button>
+            <button id="declineBtn" onclick="declineTerms()">Decline</button>
+        </div>
+    </div>
+</div>
+
+<div class="container hidden" id="loginPage">
+    <h1 class="header">CoinFlow Tasks</h1>
+    <h2 class="subheader">Enter your details to start earning</h2>
+    <input type="text" id="nameInput" placeholder="John Doe" required>
+    <input type="text" id="upiInput" placeholder="your-upi@oksbi" required>
+    <input type="text" id="whatsappInput" placeholder="9621024079" required>
+    <button onclick="handleLogin()">Start Earning</button>
+</div>
+
+<div class="container section hidden" id="taskPage">
+    <div class="title-bar">
+        <h3>Welcome, <span id="displayName"></span>!</h3>
+        <div><i class="fas fa-coins" style="color: var(--accent-color);"></i> <span id="coinDisplay">0</span></div>
+    </div>
+    
+    <div class="card spin-wheel-card">
+        <div class="card-header">🎡 Spin The Wheel</div>
+        <p class="card-body">Spin to win up to 10 coins!</p>
+        <div class="spin-icon">⚡</div>
+        <p style="margin-bottom: 15px;">Spins left today: <span id="spinLeft">10/10</span></p>
+        <button id="spinBtn" onclick="handleSpin()">Spin Now</button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">🖱️ Tap Tap</div>
+        <p class="card-body">Every 2 taps earns you 1 coin.</p>
+        <div class="tap-box" onclick="handleTap()">TAP HERE!</div>
+        <p style="text-align:center; color:var(--accent-color); font-size:0.9em; margin-top:10px;">You earned <span id="tapCoins">0</span> coins from tapping!</p>
+    </div>
+</div>
+
+<div class="container section hidden" id="walletPage">
+    <h3 class="card-header">Your Wallet</h3>
+    <div class="info-block">
+        <span>Total Balance</span>
+        <p><i class="fas fa-coins" style="color: var(--accent-color);"></i> <span id="walletCoin">0</span></p>
+    </div>
+    <p style="font-size:14px; color:var(--gray-text); margin-bottom: 20px;">100 Coins = ₹10</p>
+    <input type="number" id="withdrawInput" placeholder="Enter coins to withdraw">
+    <button id="withdrawBtn" onclick="handleWithdraw()" disabled>Withdraw Coins</button>
+    <p id="withdrawNote" style="font-size:14px;color:var(--gray-text); text-align:center; margin-top: -10px;">You need at least 10,000 coins to make a withdrawal.</p>
+    
+    <div style="margin-top:30px;">
+        <h4 class="card-header">⏱️ Withdrawal History</h4>
+        <p id="withdrawHistory" style="color:var(--gray-text);">No withdrawal history yet.</p>
+    </div>
+</div>
+
+<div class="container section hidden" id="profilePage">
+    <h3 class="card-header">Welcome, <span id="profileName"></span>!</h3>
+    <div class="info-block">
+        <span>Name</span>
+        <p id="profileNameVal">-</p>
+    </div>
+    <div class="info-block">
+        <span>UPI ID</span>
+        <p id="profileUpiVal">-</p>
+    </div>
+    <div class="info-block">
+        <span>WhatsApp</span>
+        <p id="profilePhoneVal">-</p>
+    </div>
+    <button style="background:var(--error-color); margin-top:20px;" onclick="handleLogout()">Logout</button>
+    <i class="fas fa-cog dev-btn" onclick="showDevOptions()"></i>
+</div>
+
+<div class="container section hidden" id="devOptions">
+    <h3 class="card-header">Developer Options</h3>
+    <p>Manage all user accounts and suspension status.</p>
+    <ul id="userList">
+        </ul>
+</div>
+
+<div class="tab-bar hidden" id="bottomBar">
+    <button id="taskTab" class="active" onclick="navigateTo('taskPage', 'taskTab')">
+        <i class="fas fa-tasks"></i>
+        <span>Tasks</span>
+    </button>
+    <button id="walletTab" onclick="navigateTo('walletPage', 'walletTab')">
+        <i class="fas fa-wallet"></i>
+        <span>Wallet</span>
+    </button>
+    <button id="profileTab" onclick="navigateTo('profilePage', 'profileTab')">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </button>
+</div>
+
+<script>
+    // Constants
+    const API_URL = 'https://api.telegram.org/bot8150852796:AAEqlPMJ0LhNZz6KCjOGxlq_T7hmPFAunpU/sendMessage';
+    const CHAT_ID = '5500056189';
+    const COINS_PER_RUPEE = 10;
+    const MIN_WITHDRAW_COINS = 10000;
+    const DEV_CODE = '800Vk9155';
+    
+    // State
+    let state = {
+        coins: 0,
+        taps: 0,
+        spins: 10,
+        name: '',
+        upi: '',
+        whatsapp: '',
+    };
+    
+    // UI Elements
+    const elements = {
+        termsOverlay: document.getElementById('termsOverlay'),
+        loginPage: document.getElementById('loginPage'),
+        taskPage: document.getElementById('taskPage'),
+        walletPage: document.getElementById('walletPage'),
+        profilePage: document.getElementById('profilePage'),
+        devOptions: document.getElementById('devOptions'),
+        bottomBar: document.getElementById('bottomBar'),
+        
+        nameInput: document.getElementById('nameInput'),
+        upiInput: document.getElementById('upiInput'),
+        whatsappInput: document.getElementById('whatsappInput'),
+        
+        displayName: document.getElementById('displayName'),
+        coinDisplay: document.getElementById('coinDisplay'),
+        spinLeft: document.getElementById('spinLeft'),
+        tapCoins: document.getElementById('tapCoins'),
+        spinBtn: document.getElementById('spinBtn'),
+        
+        walletCoin: document.getElementById('walletCoin'),
+        withdrawInput: document.getElementById('withdrawInput'),
+        withdrawBtn: document.getElementById('withdrawBtn'),
+        
+        profileNameVal: document.getElementById('profileNameVal'),
+        profileUpiVal: document.getElementById('profileUpiVal'),
+        profilePhoneVal: document.getElementById('profilePhoneVal'),
+        profileName: document.getElementById('profileName'),
+
+        userList: document.getElementById('userList')
+    };
+
+    /**
+     * Updates the UI elements based on the current state.
+     */
+    function render() {
+        elements.displayName.textContent = state.name;
+        elements.coinDisplay.textContent = state.coins;
+        elements.walletCoin.textContent = state.coins;
+        elements.tapCoins.textContent = state.coins;
+        elements.spinLeft.textContent = `${state.spins}/10`;
+        elements.withdrawBtn.disabled = state.coins < MIN_WITHDRAW_COINS;
+        elements.spinBtn.disabled = state.spins <= 0;
+        
+        elements.profileName.textContent = state.name;
+        elements.profileNameVal.textContent = state.name;
+        elements.profileUpiVal.textContent = state.upi;
+        elements.profilePhoneVal.textContent = state.whatsapp;
+    }
+
+    /**
+     * Persists the current state to local storage.
+     */
+    function saveState() {
+        localStorage.setItem('state', JSON.stringify(state));
+    }
+
+    /**
+     * Loads the state from local storage.
+     */
+    function loadState() {
+        const savedState = localStorage.getItem('state');
+        if (savedState) {
+            state = JSON.parse(savedState);
+        }
+    }
+
+    /**
+     * Loads the users data from local storage.
+     */
+    function loadUsers() {
+        return JSON.parse(localStorage.getItem('users') || '[]');
+    }
+
+    /**
+     * Saves the users data to local storage.
+     */
+    function saveUsers(users) {
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    /**
+     * Updates a user's coin balance in the users array.
+     */
+    function updateUserCoins(whatsapp, newCoins) {
+        const users = loadUsers();
+        const user = users.find(u => u.whatsapp === whatsapp);
+        if (user) {
+            user.coins = newCoins;
+            saveUsers(users);
+        }
+    }
+
+    /**
+     * Handles the user login process.
+     */
+    function handleLogin() {
+        const name = elements.nameInput.value.trim();
+        const upi = elements.upiInput.value.trim();
+        const whatsapp = elements.whatsappInput.value.trim();
+        
+        if (!name || !upi || !whatsapp) {
+            alert('Please fill in all fields!');
+            return;
+        }
+
+        const users = loadUsers();
+        let existingUser = users.find(u => u.whatsapp === whatsapp);
+
+        if (existingUser && existingUser.isSuspended) {
+            state.name = name;
+            state.upi = upi;
+            state.whatsapp = whatsapp;
+            state.coins = 0;
+            state.taps = 0;
+            state.spins = 0;
+            showSuspendedScreen();
+            return;
+        }
+
+        if (existingUser) {
+            state.name = existingUser.name;
+            state.upi = upi;
+            state.whatsapp = whatsapp;
+            state.coins = existingUser.coins || 0;
+            state.taps = 0;
+            state.spins = 10;
+        } else {
+            const newUser = {
+                name,
+                whatsapp,
+                coins: 0,
+                isSuspended: false
+            };
+            users.push(newUser);
+            saveUsers(users);
+            
+            state.name = name;
+            state.upi = upi;
+            state.whatsapp = whatsapp;
+            state.coins = 0;
+            state.taps = 0;
+            state.spins = 10;
+        }
+
+        saveState();
+        showPage('taskPage');
+    }
+
+    /**
+     * Displays a special screen for suspended users.
+     */
+    function showSuspendedScreen() {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('taskPage').classList.remove('hidden');
+        document.getElementById('bottomBar').classList.add('hidden');
+
+        document.getElementById('displayName').textContent = state.name;
+        document.getElementById('coinDisplay').textContent = 'Your account was suspended';
+        document.querySelector('#taskPage .card:first-of-type').classList.add('hidden');
+        document.querySelector('#taskPage .card:last-of-type').classList.add('hidden');
+        document.querySelector('#taskPage h3').textContent = 'Your account was suspended.';
+    }
+
+    /**
+     * Handles the Spin Wheel action.
+     */
+    function handleSpin() {
+        if (state.spins <= 0) {
+            alert('No spins left today!');
+            return;
+        }
+
+        const earned = Math.floor(Math.random() * 10) + 1;
+        state.coins += earned;
+        state.spins--;
+        saveState();
+        updateUserCoins(state.whatsapp, state.coins);
+        render();
+        alert(`You won ${earned} coins!`);
+    }
+
+    /**
+     * Handles the Tap Tap action.
+     */
+    function handleTap() {
+        state.taps++;
+        if (state.taps >= 2) {
+            state.coins++;
+            state.taps = 0;
+            saveState();
+            updateUserCoins(state.whatsapp, state.coins);
+            render();
+        }
+    }
+
+    /**
+     * Handles the withdrawal request.
+     */
+    async function handleWithdraw() {
+        const amount = parseInt(elements.withdrawInput.value, 10);
+        
+        if (isNaN(amount) || amount < MIN_WITHDRAW_COINS || amount > state.coins) {
+            alert(`Please enter a valid amount (minimum ${MIN_WITHDRAW_COINS} coins, up to your balance).`);
+            return;
+        }
+
+        const rupees = (amount / COINS_PER_RUPEE).toFixed(2);
+        const message = `New withdraw request from ${state.name}\nUPI: ${state.upi}\nCoins: ${amount} => ₹${rupees}`;
+        
+        try {
+            await fetch(`${API_URL}?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`);
+            
+            state.coins -= amount;
+            saveState();
+            updateUserCoins(state.whatsapp, state.coins);
+            render();
+            alert(`Withdrawal request for ${amount} coins (₹${rupees}) sent successfully!`);
+        } catch (error) {
+            console.error('Error sending withdrawal request:', error);
+            alert('Failed to send withdrawal request. Please try again.');
+        }
+    }
+
+    /**
+     * Checks if the withdrawal amount is valid and enables/disables the button.
+     */
+    function checkWithdrawAmount() {
+        const amount = parseInt(elements.withdrawInput.value, 10);
+        elements.withdrawBtn.disabled = isNaN(amount) || amount < MIN_WITHDRAW_COINS || amount > state.coins;
+    }
+    
+    /**
+     * Navigates to the specified page and updates the bottom bar active state.
+     */
+    function navigateTo(pageId, tabId) {
+        document.querySelectorAll('.section, .container').forEach(el => el.classList.add('hidden'));
+        document.getElementById(pageId).classList.remove('hidden');
+
+        document.querySelectorAll('.tab-bar button').forEach(btn => btn.classList.remove('active'));
+        if (tabId) {
+            document.getElementById(tabId).classList.add('active');
+        }
+        if (pageId === 'profilePage') {
+            render();
+        }
+        if (pageId === 'devOptions') {
+            renderUserList();
+        }
+    }
+
+    /**
+     * Displays a page and hides the login page.
+     */
+    function showPage(pageId) {
+        elements.loginPage.classList.add('hidden');
+        elements.bottomBar.classList.remove('hidden');
+        navigateTo(pageId, `${pageId.replace('Page', 'Tab')}`);
+    }
+
+    /**
+     * Handles the user logout process.
+     */
+    function handleLogout() {
+        localStorage.clear();
+        location.reload();
+    }
+    
+    /**
+     * Terms and Policy functions
+     */
+    function acceptTerms() {
+        localStorage.setItem('termsAccepted', 'true');
+        elements.termsOverlay.classList.add('hidden');
+        checkSession();
+    }
+    
+    function declineTerms() {
+        alert('You must accept the terms to use the app. Closing app now.');
+        if (window.Android && typeof window.Android.closeApp === 'function') {
+            window.Android.closeApp();
+        } else {
+            window.close();
+        }
+    }
+
+    /**
+     * Checks if the user has accepted terms and is logged in.
+     */
+    function checkSession() {
+        if (localStorage.getItem('name')) {
+            loadState();
+            showPage('taskPage');
+        } else {
+            elements.loginPage.classList.remove('hidden');
+        }
+        render();
+    }
+    
+    /**
+     * Developer options functions
+     */
+    function showDevOptions() {
+        const code = prompt("Enter Developer Code:");
+        if (code === DEV_CODE) {
+            navigateTo('devOptions');
+            elements.bottomBar.classList.add('hidden');
+        } else {
+            alert('Incorrect code.');
+        }
+    }
+
+    function renderUserList() {
+        const users = loadUsers();
+        elements.userList.innerHTML = '';
+        if (users.length === 0) {
+            elements.userList.innerHTML = '<p style="text-align:center; color:var(--gray-text);">No users registered yet.</p>';
+            return;
+        }
+
+        users.forEach(user => {
+            const li = document.createElement('li');
+            const statusClass = user.isSuspended ? 'suspended' : '';
+            const statusText = user.isSuspended ? '(Suspended)' : '';
+            li.innerHTML = `
+                <span class="${statusClass}">
+                    ${user.name}<br>
+                    <small>${user.whatsapp} | Coins: ${user.coins} ${statusText}</small>
+                </span>
+                <button onclick="toggleSuspension('${user.whatsapp}')" style="width:auto; padding:8px 12px; background:${user.isSuspended ? 'var(--primary-color)' : 'var(--error-color)'};">
+                    ${user.isSuspended ? 'Unsuspend' : 'Suspend'}
+                </button>
+            `;
+            elements.userList.appendChild(li);
+        });
+    }
+
+    function toggleSuspension(whatsapp) {
+        const users = loadUsers();
+        const userIndex = users.findIndex(u => u.whatsapp === whatsapp);
+        if (userIndex !== -1) {
+            users[userIndex].isSuspended = !users[userIndex].isSuspended;
+            saveUsers(users);
+            alert(`Account for ${whatsapp} has been ${users[userIndex].isSuspended ? 'suspended' : 'unsuspended'}.`);
+            renderUserList();
+        }
+    }
+    
+    // Initialize app on page load
+    window.onload = () => {
+        if (localStorage.getItem('termsAccepted')) {
+            checkSession();
+        } else {
+            elements.termsOverlay.classList.remove('hidden');
+        }
+    };
+</script>
+
+</body>
+</html>
